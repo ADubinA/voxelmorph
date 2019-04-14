@@ -22,7 +22,6 @@ import nibabel as nib
 
 # project
 import networks
-sys.path.append('../ext/neuron')
 import neuron.layers as nrn_layers
 
 def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
@@ -78,14 +77,14 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     
     # positional arguments
-    parser.add_argument("moving", type=str, default=None,
+    parser.add_argument("moving", type=str, default="./data/test_vol.npz",
                         help="moving file name")
-    parser.add_argument("fixed", type=str, default=None,
+    parser.add_argument("fixed", type=str, default="./data/atlas_norm.npz",
                         help="fixed file name")
 
     # optional arguments
     parser.add_argument("--model_file", type=str,
-                        dest="model_file", default='../models/cvpr2018_vm1_cc.h5',
+                        dest="model_file", default='./models/cvpr2018_vm1_cc.h5',
                         help="models h5 file")
     parser.add_argument("--gpu", type=int, default=None,
                         dest="gpu_id", help="gpu id number")

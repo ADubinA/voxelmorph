@@ -22,7 +22,6 @@ import datagenerators
 import networks
 import losses
 
-sys.path.append('../ext/neuron')
 import neuron.callbacks as nrn_gen
 
 

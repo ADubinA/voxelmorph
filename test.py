@@ -11,7 +11,6 @@ from keras.backend.tensorflow_backend import set_session
 from scipy.interpolate import interpn
 
 # project
-sys.path.append('../ext/medipy-lib')
 import medipy
 import networks
 from medipy.metrics import dice
@@ -27,9 +26,8 @@ def test(model_name, gpu_id, vol_size=(160,192,224), nf_enc=[16,32,32,32], nf_de
     # This needs to be changed. Ideally, we could just call load_model, and we wont have to
     # specify the # of channels here, but the load_model is not working with the custom loss...
     """  
-
 	gpu = '/gpu:' + str(gpu_id)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+	os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
 	# Anatomical labels we want to evaluate
 	labels = sio.loadmat('../data/labels.mat')['labels'][0]
