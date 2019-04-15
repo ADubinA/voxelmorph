@@ -139,6 +139,6 @@ def load_volfile(datafile):
         X = nib.load(datafile).get_data()
         
     else: # npz
-        X = np.load(datafile)['vol_data']
+        X = np.load(datafile)['vol_data'] # arr 0 or vol_data
 
     return X
