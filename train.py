@@ -24,7 +24,7 @@ import losses
 
 import neuron.callbacks as nrn_gen
 
-
+IMAGE_SHAPE = (16,128,128)
 def train(data_dir,
           atlas_file, 
           model,
@@ -55,8 +55,9 @@ def train(data_dir,
     """
 
     # load atlas from provided files. The atlas we used is 160x192x224.
-    atlas_vol = np.load(atlas_file)['vol'][np.newaxis, ..., np.newaxis]
-    vol_size = atlas_vol.shape[1:-1] 
+    atlas_vol = np.load(atlas_file)['arr_0'][np.newaxis, ..., np.newaxis]#[0:IMAGE_SHAPE[0],:,:]#
+    atlas_vol = atlas_vol[:,0:IMAGE_SHAPE[0], ...]
+    vol_size = atlas_vol.shape[1:-1]
     # prepare data files
     # for the CVPR and MICCAI papers, we have data arranged in train/validate/test folders
     # inside each folder is a /vols/ and a /asegs/ folder with the volumes
@@ -113,7 +114,7 @@ def train(data_dir,
         'batch_size should be a multiple of the nr. of gpus. ' + \
         'Got batch_size %d, %d gpus' % (batch_size, nb_gpus)
 
-    train_example_gen = datagenerators.example_gen(train_vol_names, batch_size=batch_size)
+    train_example_gen = datagenerators.example_gen(train_vol_names,IMAGE_SHAPE, batch_size=batch_size)
     atlas_vol_bs = np.repeat(atlas_vol, batch_size, axis=0)
     cvpr2018_gen = datagenerators.cvpr2018_gen(train_example_gen, atlas_vol_bs, batch_size=batch_size)
 
@@ -153,15 +154,15 @@ if __name__ == "__main__":
                         help="data folder")
 
     parser.add_argument("--atlas_file", type=str,
-                        dest="atlas_file", default='../data/atlas_norm.npz',
+                        dest="atlas_file", default=r'D:\LIDC-IDRI_npz_small\2.npz',
                         help="gpu id number")
     parser.add_argument("--model", type=str, dest="model",
-                        choices=['vm1', 'vm2', 'vm2double'], default='vm2',
+                        choices=['vm1', 'vm2', 'vm2double'], default='vm1',
                         help="Voxelmorph-1 or 2")
     parser.add_argument("--model_dir", type=str,
                         dest="model_dir", default='../models/',
                         help="models folder")
-    parser.add_argument("--gpu", type=str, default=0,
+    parser.add_argument("--gpu", type=str, default="0",
                         dest="gpu_id", help="gpu id number (or numbers separated by comma)")
     parser.add_argument("--lr", type=float,
                         dest="lr", default=1e-4, help="learning rate")
@@ -178,7 +179,7 @@ if __name__ == "__main__":
                         dest="batch_size", default=1,
                         help="batch_size")
     parser.add_argument("--load_model_file", type=str,
-                        dest="load_model_file", default='../models/cvpr2018_vm2_l2.h5',
+                        dest="load_model_file", default=None, #"'../models/cvpr2018_vm2_l2.h5',
                         help="optional h5 model file to initialize with")
     parser.add_argument("--data_loss", type=str,
                         dest="data_loss", default='mse',

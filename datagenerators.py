@@ -60,7 +60,7 @@ def miccai2018_gen_s2s(gen, batch_size=1, bidir=False):
             yield ([X, Y], [Y, zeros])
 
 
-def example_gen(vol_names, batch_size=1, return_segs=False, seg_dir=None):
+def example_gen(vol_names,vol_shape, batch_size=1, return_segs=False, seg_dir=None):
     """
     generate examples
 
@@ -80,6 +80,7 @@ def example_gen(vol_names, batch_size=1, return_segs=False, seg_dir=None):
         for idx in idxes:
             X = load_volfile(vol_names[idx])
             X = X[np.newaxis, ..., np.newaxis]
+            X = X[:,0:vol_shape[0], ...]
             X_data.append(X)
 
         if batch_size > 1:
@@ -139,6 +140,6 @@ def load_volfile(datafile):
         X = nib.load(datafile).get_data()
         
     else: # npz
-        X = np.load(datafile)['vol_data'] # arr 0 or vol_data
+        X = np.load(datafile)['arr_0'] # arr 0 or vol_data
 
     return X

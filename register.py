@@ -19,11 +19,11 @@ import numpy as np
 import keras
 from keras.backend.tensorflow_backend import set_session
 import nibabel as nib
-
+import matplotlib.pyplot as plt
 # project
 import networks
 import neuron.layers as nrn_layers
-
+import losses
 def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
     """
     register moving and fixed. 
@@ -43,34 +43,41 @@ def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
         gpu = '/cpu:0'
 
     # load data
-    mov_nii = nib.load(moving)
-    mov = mov_nii.get_data()[np.newaxis, ..., np.newaxis]
-    fix_nii = nib.load(fixed)
-    fix = fix_nii.get_data()[np.newaxis, ..., np.newaxis]
+    with np.load(moving) as mov:
+        mov = mov["arr_0"][np.newaxis,:16, ..., np.newaxis]
+    with np.load(fixed) as fix:
+        fix = fix["arr_0"][np.newaxis,:16, ..., np.newaxis]
 
     with tf.device(gpu):
         # load model
         custom_layers = {'SpatialTransformer':nrn_layers.SpatialTransformer,
-                 'VecInt':nrn_layers.VecInt,
-                 'Sample':networks.Sample,
-                 'Rescale':networks.RescaleDouble,
-                 'Resize':networks.ResizeDouble,
-                 'Negate':networks.Negate}
+                         'VecInt':nrn_layers.VecInt,
+                         'Sample':networks.Sample,
+                         'Rescale':networks.RescaleDouble,
+                         'Resize':networks.ResizeDouble,
+                         'Negate':networks.Negate,
+                         "loss":losses.Grad('l2').loss}
 
         net = keras.models.load_model(model_file, custom_objects=custom_layers)
 
         # register
         [moved, warp] = net.predict([mov, fix])
+    fig, ax = plt.subplots(nrows=1, ncols=4)
+    ax[0].imshow(fix[0,0,...,0])
+    ax[1].imshow(mov[0,0,...,0])
+    ax[2].imshow(moved[0,0,...,0])
+    ax[3].imshow(warp[0,0,...,0])
 
-    # output image
-    if out_img is not None:
-        img = nib.Nifti1Image(moved[0,...,0], mov_nii.affine)
-        nib.save(img, out_img)
-
-    # output warp
-    if out_warp is not None:
-        img = nib.Nifti1Image(warp[0,...], mov_nii.affine)
-        nib.save(img, out_warp)
+    plt.show()
+    # # output image
+    # if out_img is not None:
+    #     img = nib.Nifti1Image(moved[0,...,0], mov_nii.affine)
+    #     nib.save(img, out_img)
+    #
+    # # output warp
+    # if out_warp is not None:
+    #     img = nib.Nifti1Image(warp[0,...], mov_nii.affine)
+    #     nib.save(img, out_warp)
 
 
 if __name__ == "__main__":
@@ -84,11 +91,11 @@ if __name__ == "__main__":
 
     # optional arguments
     parser.add_argument("--model_file", type=str,
-                        dest="model_file", default='./models/cvpr2018_vm1_cc.h5',
+                        dest="model_file", default=r'C:\Users\almog\dev\models\1499.h5',
                         help="models h5 file")
     parser.add_argument("--gpu", type=int, default=None,
                         dest="gpu_id", help="gpu id number")
-    parser.add_argument("--out_img", type=str, default=None,
+    parser.add_argument("--out_img", type=str, default=True,
                         dest="out_img", help="output image file name")
     parser.add_argument("--out_warp", type=str, default=None,
                         dest="out_warp", help="output warp file name")

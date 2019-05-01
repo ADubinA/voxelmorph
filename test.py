@@ -70,4 +70,4 @@ def test(model_name, gpu_id, vol_size=(160,192,224), nf_enc=[16,32,32,32], nf_de
 
 if __name__ == "__main__":
 	# test(sys.argv[1], sys.argv[2], sys.argv[3])
-	test(sys.argv[1], sys.argv[2])
+	test(sys.argv[1], sys.argv[2], (16,128,128),nf_dec=[32, 32, 32, 32, 8, 8,3])
