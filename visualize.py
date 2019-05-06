@@ -3,12 +3,20 @@ from vispy import app, scene
 from multivol import MultiVolume
 from multivol import get_translucent_cmap
 from vispy import io, plot as vp
+import matplotlib.pyplot as plt
+import math
+
+def threshold(data, data_min, data_max):
+    data[data > data_max] = 0
+    data[data < data_min] = 0
+    return data
 
 def normalize(vol_data):
     vol_data-= min(0,np.min(vol_data))
     vol_data = vol_data.astype("float64")
     vol_data *= 255.0/vol_data.max()
-    return vol_data
+    return vol_data.astype("int16")
+
 
 def show_3d(volume, vol_min=-float("inf"),vol_max=float("inf")):
 
@@ -16,16 +24,14 @@ def show_3d(volume, vol_min=-float("inf"),vol_max=float("inf")):
     vol_data = volume
     vol_data = np.flipud(np.rollaxis(vol_data, 1))
 
-    vol_data[vol_data > vol_max] = 0
-    vol_data[vol_data < vol_min] = 0
+    vol_data = threshold(vol_data, vol_min, vol_max)
 
     clim = [32, 192]
     vol_pw = fig[0, 0]
 
-    vol_data-= min(0,np.min(vol_data))
+    vol_data -= min(0, np.min(vol_data))
     vol_data = vol_data.astype("float64")
     vol_data *= 255.0/vol_data.max()
-
 
     vol_pw.volume(vol_data, clim=clim,  cmap='hot')
     vol_pw.camera.elevation = 30
@@ -42,13 +48,8 @@ def show_merge_3d(volume0, volume1, vol_min=-float("inf"),vol_max=float("inf")):
 
     fig = vp.Fig(bgcolor='k', size=(800, 800), show=False)
 
-    volume0[volume0 > vol_max] = 0
-    volume0[volume0 < vol_min] = 0
-    volume1[volume1 > vol_max] = 0
-    volume1[volume1 < vol_min] = 0
-
-    clim = [32, 192]
-    vol_pw = fig[0, 0]
+    volume0 = threshold(volume0, vol_min, vol_max)
+    volume1 = threshold(volume1, vol_min, vol_max)
 
     volume0 = normalize(volume0)
     volume1 = normalize(volume1)
@@ -68,19 +69,87 @@ def show_merge_3d(volume0, volume1, vol_min=-float("inf"),vol_max=float("inf")):
 
     # Create the volume visuals, only one is visible
     volumes = [(volume0, None, blues), (volume1, None, reds)]
-    volume = MultiVolume(volumes, parent=view.scene, threshold=0.225,
-                          emulate_texture=emulate_texture)
+    volume = MultiVolume(volumes, parent=view.scene, threshold=0.225, emulate_texture=emulate_texture)
     volume.transform = scene.STTransform(translate=(64, 64, 0))
 
     # Create three cameras (Fly, Turntable and Arcball)
     fov = 60.
-    cam2 = scene.cameras.TurntableCamera(parent=view.scene, fov=fov,
-                                         name='Turntable')
+    cam2 = scene.cameras.TurntableCamera(parent=view.scene, fov=fov, name='Turntable')
     view.camera = cam2  # Select turntable at first
 
     canvas.update()
     app.run()
+
+def show_difference_2d(volume0, volume1,slice_dim=0 ,jump=1, vol_min=-float("inf"),vol_max=float("inf")):
+    indx = [slice(None)] * volume0.ndim
+    indx[slice_dim] = slice(0, min(volume0.shape[slice_dim],volume0.shape[slice_dim]),jump)
+
+    volume0_slice = volume0[tuple(indx)]
+    volume1_slice = volume1[tuple(indx)]
+
+    num_of_images = volume0_slice.shape[slice_dim]
+    images_per_row = 5
+    fig, ax = plt.subplots(math.ceil(num_of_images/images_per_row)-1, images_per_row, sharex='col', sharey='row')
+
+
+
+    for i in range(math.ceil(num_of_images/images_per_row)-1):
+        for j in range(images_per_row):
+            indx[slice_dim] = i*images_per_row+j
+            ax[i, j].imshow(volume0_slice[tuple(indx)])
+
+    plt.figure()
+    fig, ax = plt.subplots(math.ceil(num_of_images/images_per_row)-1, images_per_row, sharex='col', sharey='row')
+
+
+
+    for i in range(math.ceil(num_of_images/images_per_row)-1):
+        for j in range(images_per_row):
+            indx[slice_dim] = i*images_per_row+j
+            ax[i, j].imshow(volume1_slice[tuple(indx)])
+    plt.show()
+
+def show_two_2d(volume0, volume1,index,slice_dim=0, vol_min=-float("inf"),vol_max=float("inf")):
+
+    indx = [slice(None)] * volume0.ndim
+    indx[slice_dim] = index
+
+
+    plt.imshow(volume0[tuple(indx)])
+
+    plt.figure()
+    indx[slice_dim] = index+5
+    plt.imshow(volume1[tuple(indx)])
+    plt.show()
+
+def show_merge_2d(volume0, volume1,slice_dim=0 ,jump=1, vol_min=-float("inf"),vol_max=float("inf")):
+    indx = [slice(None)] * volume0.ndim
+    indx[slice_dim] = slice(0, min(volume0.shape[slice_dim],volume0.shape[slice_dim]),jump)
+
+    volume0_slice = volume0[tuple(indx)]
+    volume1_slice = volume1[tuple(indx)]
+
+    num_of_images = volume0_slice.shape[slice_dim]
+    images_per_row = 5
+    fig, ax = plt.subplots(math.ceil(num_of_images/images_per_row), images_per_row+1, sharex='col', sharey='row')
+
+    indx[slice_dim] = slice(0,3)
+    img = np.zeros(shape=(128,128,3))
+    for i in range(math.floor(num_of_images/images_per_row)):
+        for j in range(images_per_row):
+            indx[slice_dim] = i*images_per_row+j
+            img[:,:,0] = normalize(volume0_slice[tuple(indx)])
+            img[:,:,1] = normalize(volume1_slice[tuple(indx)])
+            # ax[i,j].imshow(img)
+            # ax[i, j].imshow(volume0_slice[tuple(indx)], alpha=.8, interpolation='bilinear', cmap="Reds")
+            # ax[i, j].imshow(volume1_slice[tuple(indx)], alpha=.8, interpolation='bilinear', cmap="Blues")
+
+            # img[:,:,0] = normalize(volume0_slice[tuple(indx)]) + normalize(volume1_slice[tuple(indx)])
+            ax[i,j].imshow(img)
+    plt.show()
 if __name__ == '__main__':
-    vol0 = np.load(io.load_data_file(r"D:\LIDC-IDRI_npz_small\0.npz"))['arr_0']
-    vol1 = np.load(io.load_data_file(r"D:\LIDC-IDRI_npz_small\1.npz"))['arr_0']
-    show_merge_3d(vol0,vol1[:66,:,:], 1500)
+    vol0 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz"))['arr_0']
+    vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/5.npz"))['arr_0']
+    # vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/small_register/0_warp.npz"))['arr_0']
+    #show_merge_3d(vol0[:16,:,:],vol1, 1500)
+    show_two_2d(vol0[:16,:,:], vol1,0,slice_dim=0)
