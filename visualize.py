@@ -150,19 +150,27 @@ def show_merge_2d(volume0, volume1,slice_dim=0 ,jump=1, vol_min=-float("inf"),vo
     plt.show()
 
 
-def show_vector_field(vol):
-    u = vol[..., 0]
-    v = vol[..., 1]
-    w = vol[..., 2]
+def show_vector_field(volume):
+    u = volume[..., 0]
+    v = volume[..., 1]
+    w = volume[..., 2]
     # mlab.quiver3d(u, v, w)
     # mlab.outline()
     #
     src = mlab.pipeline.vector_field(u, v, w)
     mlab.pipeline.vectors(src, mask_points=20, scale_factor=3.)
 
+
+def show_histogram(volume):
+    plt.hist(volume.flatten(), bins='auto')  # arguments are passed to np.histogram
+
+    plt.title("Histogram with 'auto' bins")
+    plt.show()
+
 if __name__ == '__main__':
     vol0 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz"))['arr_0']
     # vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/5.npz"))['arr_0']
     vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/small_register/0_moved.npz"))['arr_0']
     #show_merge_3d(vol0[:16,:,:],vol1, 1500)
-    show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
+    #show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
+    show_histogram(vol0)
