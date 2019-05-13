@@ -5,6 +5,7 @@ from multivol import get_translucent_cmap
 from vispy import io, plot as vp
 import matplotlib.pyplot as plt
 import math
+import mayavi.mlab as mlab
 
 def threshold(data, data_min, data_max):
     data[data > data_max] = 0
@@ -147,9 +148,21 @@ def show_merge_2d(volume0, volume1,slice_dim=0 ,jump=1, vol_min=-float("inf"),vo
             # img[:,:,0] = normalize(volume0_slice[tuple(indx)]) + normalize(volume1_slice[tuple(indx)])
             ax[i,j].imshow(img)
     plt.show()
+
+
+def show_vector_field(vol):
+    u = vol[..., 0]
+    v = vol[..., 1]
+    w = vol[..., 2]
+    # mlab.quiver3d(u, v, w)
+    # mlab.outline()
+    #
+    src = mlab.pipeline.vector_field(u, v, w)
+    mlab.pipeline.vectors(src, mask_points=20, scale_factor=3.)
+
 if __name__ == '__main__':
     vol0 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz"))['arr_0']
-    vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/5.npz"))['arr_0']
-    # vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/small_register/0_warp.npz"))['arr_0']
+    # vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/5.npz"))['arr_0']
+    vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/small_register/0_moved.npz"))['arr_0']
     #show_merge_3d(vol0[:16,:,:],vol1, 1500)
-    show_two_2d(vol0[:16,:,:], vol1,0,slice_dim=0)
+    show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
