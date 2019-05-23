@@ -168,9 +168,9 @@ def show_histogram(volume):
     plt.show()
 
 if __name__ == '__main__':
-    vol0 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz"))['arr_0']
-    # vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/LIDC-IDRI_npz_small/5.npz"))['arr_0']
-    vol1 = np.load(io.load_data_file(r"/home/almogdubin/datadrive/small_register/0_moved.npz"))['arr_0']
+    vol0 = np.load(r"D:/LIDC-IDRI_npz_small/0.npz")['arr_0']
+    vol1 = np.load(r"D:/output.npz")['arr_0']
+    # vol1 = np.load(io.load_data_file(r"D:/small_register/0_moved.npz"))['arr_0']
     #show_merge_3d(vol0[:16,:,:],vol1, 1500)
-    #show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
-    show_histogram(vol0)
+    show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
+    # show_histogram(vol0)

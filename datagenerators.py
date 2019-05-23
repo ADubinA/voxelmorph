@@ -8,6 +8,7 @@ and segmentations. All of our papers use npz formated data.
 
 import os, sys
 import numpy as np
+import tools
 
 
 def cvpr2018_gen(gen, atlas_vol_bs, batch_size=1):
@@ -81,6 +82,8 @@ def example_gen(vol_names,vol_shape, batch_size=1, return_segs=False, seg_dir=No
             X = load_volfile(vol_names[idx])
             X = X[np.newaxis, ..., np.newaxis]
             X = X[:,0:vol_shape[0], ...]
+            # TODO remove this noise, it is for debugging ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            tools.add_noise(X,0.85,5)
             X_data.append(X)
 
         if batch_size > 1:

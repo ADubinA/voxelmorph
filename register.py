@@ -43,10 +43,11 @@ def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
         gpu = '/cpu:0'
 
     # load data
-    with np.load(moving) as mov:
-        mov = mov["arr_0"][np.newaxis,:16, ..., np.newaxis]
+
     with np.load(fixed) as fix:
         fix = fix["arr_0"][np.newaxis,:16, ..., np.newaxis]
+    with np.load(moving) as mov:
+        mov = mov["arr_0"][np.newaxis,:16, ..., np.newaxis]
 
     with tf.device(gpu):
         # load model
@@ -120,8 +121,15 @@ if __name__ == "__main__":
     #
     # args = parser.parse_args()
     # register(**vars(args))
-    mass_registar(gpu_id=0,
-                  fixed     ="/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz",
-                  folder_in ="/home/almogdubin/datadrive/LIDC-IDRI_npz_small",
-                  model_file="/home/almogdubin/datadrive/voxelmorph-model-weights/1500.h5",
-                  folder_out="/home/almogdubin/datadrive/small_register")
+    register(
+                gpu_id    = 0,
+                fixed     = r"D:\LIDC-IDRI_npz_small/0.npz",
+                moving    = r"D:\LIDC-IDRI_npz_small/0.npz",
+                model_file= r"C:\Users\almog\dev\models\500.h5",
+                out_img   = r"D:\output.npz",
+                out_warp  =None)
+    # mass_registar(gpu_id=0,
+    #               fixed     ="/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz",
+    #               folder_in ="/home/almogdubin/datadrive/LIDC-IDRI_npz_small",
+    #               model_file="/home/almogdubin/datadrive/voxelmorph-model-weights/1500.h5",
+    #               folder_out="/home/almogdubin/datadrive/small_register")

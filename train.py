@@ -62,7 +62,7 @@ def train(data_dir,
     # for the CVPR and MICCAI papers, we have data arranged in train/validate/test folders
     # inside each folder is a /vols/ and a /asegs/ folder with the volumes
     # and segmentations. All of our papers use npz formated data.
-    train_vol_names = glob.glob(os.path.join(data_dir, '*.npz'))
+    train_vol_names = glob.glob(os.path.join(data_dir, '*0.npz'))
     random.shuffle(train_vol_names)  # shuffle volume list
     assert len(train_vol_names) > 0, "Could not find any training data"
 
@@ -150,11 +150,11 @@ def train(data_dir,
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("data_dir", type=str,
+    parser.add_argument("--data_dir", type=str,dest="data_dir",default=r'D:\LIDC-IDRI_npz_small',
                         help="data folder")
 
     parser.add_argument("--atlas_file", type=str,
-                        dest="atlas_file", default=r'D:\LIDC-IDRI_npz_small\2.npz',
+                        dest="atlas_file", default=r'D:\LIDC-IDRI_npz_small\0.npz',
                         help="gpu id number")
     parser.add_argument("--model", type=str, dest="model",
                         choices=['vm1', 'vm2', 'vm2double'], default='vm1',
