@@ -12,6 +12,7 @@ from argparse import ArgumentParser
 # third-party imports
 import tensorflow as tf
 import numpy as np
+import nibabel as nib
 from keras.backend.tensorflow_backend import set_session
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
@@ -24,7 +25,6 @@ import losses
 
 import neuron.callbacks as nrn_gen
 
-IMAGE_SHAPE = (16,128,128)
 def train(data_dir,
           atlas_file, 
           model,
@@ -55,14 +55,14 @@ def train(data_dir,
     """
 
     # load atlas from provided files. The atlas we used is 160x192x224.
-    atlas_vol = np.load(atlas_file)['arr_0'][np.newaxis, ..., np.newaxis]#[0:IMAGE_SHAPE[0],:,:]#
-    atlas_vol = atlas_vol[:,0:IMAGE_SHAPE[0], ...]
+    atlas_vol = nib.load(atlas_file).get_fdata()[np.newaxis, ..., np.newaxis]#[0:IMAGE_SHAPE[0],:,:]#
+    atlas_vol = atlas_vol[:,:,:,0:48,:]
     vol_size = atlas_vol.shape[1:-1]
     # prepare data files
     # for the CVPR and MICCAI papers, we have data arranged in train/validate/test folders
     # inside each folder is a /vols/ and a /asegs/ folder with the volumes
     # and segmentations. All of our papers use npz formated data.
-    train_vol_names = glob.glob(os.path.join(data_dir, '*0.npz'))
+    train_vol_names = glob.glob(os.path.join(data_dir, '*.nii.gz'))
     random.shuffle(train_vol_names)  # shuffle volume list
     assert len(train_vol_names) > 0, "Could not find any training data"
 
@@ -114,7 +114,7 @@ def train(data_dir,
         'batch_size should be a multiple of the nr. of gpus. ' + \
         'Got batch_size %d, %d gpus' % (batch_size, nb_gpus)
 
-    train_example_gen = datagenerators.example_gen(train_vol_names,IMAGE_SHAPE, batch_size=batch_size)
+    train_example_gen = datagenerators.example_gen(train_vol_names,vol_size, batch_size=batch_size)
     atlas_vol_bs = np.repeat(atlas_vol, batch_size, axis=0)
     cvpr2018_gen = datagenerators.cvpr2018_gen(train_example_gen, atlas_vol_bs, batch_size=batch_size)
 
@@ -150,14 +150,14 @@ def train(data_dir,
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("--data_dir", type=str,dest="data_dir",default=r'D:\LIDC-IDRI_npz_small',
+    parser.add_argument("--data_dir", type=str,dest="data_dir",default=r'D:\head-neck-reg-small\pet',
                         help="data folder")
 
     parser.add_argument("--atlas_file", type=str,
-                        dest="atlas_file", default=r'D:\LIDC-IDRI_npz_small\0.npz',
+                        dest="atlas_file", default=r'D:\head-neck-reg-small\pet\HN-CHUM-007.nii.gz',
                         help="gpu id number")
     parser.add_argument("--model", type=str, dest="model",
-                        choices=['vm1', 'vm2', 'vm2double'], default='vm1',
+                        choices=['vm1', 'vm2', 'vm2double'], default='vm2',
                         help="Voxelmorph-1 or 2")
     parser.add_argument("--model_dir", type=str,
                         dest="model_dir", default='../models/',
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument("--gpu", type=str, default="0",
                         dest="gpu_id", help="gpu id number (or numbers separated by comma)")
     parser.add_argument("--lr", type=float,
-                        dest="lr", default=1e-4, help="learning rate")
+                        dest="lr", default=1e-5, help="learning rate")
     parser.add_argument("--epochs", type=int,
                         dest="nb_epochs", default=1500,
                         help="number of iterations")

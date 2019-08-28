@@ -20,6 +20,7 @@ import numpy as np
 import keras
 from keras.backend.tensorflow_backend import set_session
 import matplotlib.pyplot as plt
+import nibabel as nib
 # project
 import networks
 import neuron.layers as nrn_layers
@@ -44,10 +45,8 @@ def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
 
     # load data
 
-    with np.load(fixed) as fix:
-        fix = fix["arr_0"][np.newaxis,:16, ..., np.newaxis]
-    with np.load(moving) as mov:
-        mov = mov["arr_0"][np.newaxis,:16, ..., np.newaxis]
+    fix = nib.load(fixed).get_data()[np.newaxis, ...,:48, np.newaxis]
+    mov = nib.load(moving).get_data()[np.newaxis, ...,:48, np.newaxis]
 
     with tf.device(gpu):
         # load model
@@ -74,7 +73,8 @@ def register(gpu_id, moving, fixed, model_file, out_img, out_warp):
     if out_img is not None:
         img = moved[0,...,0]
         print("saving image to: " + "out_img")
-        np.savez(out_img, img)
+        img = nib.Nifti1Image(img, np.eye(4))
+        nib.save(img, out_img)
 
     # output warp
     if out_warp is not None:
@@ -123,10 +123,10 @@ if __name__ == "__main__":
     # register(**vars(args))
     register(
                 gpu_id    = 0,
-                fixed     = r"D:\LIDC-IDRI_npz_small/0.npz",
-                moving    = r"D:\LIDC-IDRI_npz_small/0.npz",
-                model_file= r"C:\Users\almog\dev\models\500.h5",
-                out_img   = r"D:\output.npz",
+                fixed     = r'D:\head-neck-reg-small\ct\HN-CHUM-007.nii.gz',
+                moving    = r'D:\head-neck-reg-small\ct\HN-CHUM-010.nii.gz',
+                model_file= r"C:\Users\almog\dev\models\93.h5",
+                out_img   = r"D:\output.nii.gz",
                 out_warp  =None)
     # mass_registar(gpu_id=0,
     #               fixed     ="/home/almogdubin/datadrive/LIDC-IDRI_npz_small/0.npz",

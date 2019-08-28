@@ -119,7 +119,7 @@ def show_two_2d(volume0, volume1,index,slice_dim=0, vol_min=-float("inf"),vol_ma
     plt.imshow(volume0[tuple(indx)])
 
     plt.figure()
-    indx[slice_dim] = index+5
+    indx[slice_dim] = index
     plt.imshow(volume1[tuple(indx)])
     plt.show()
 
@@ -169,8 +169,10 @@ def show_histogram(volume):
 
 if __name__ == '__main__':
     vol0 = np.load(r"D:/LIDC-IDRI_npz_small/0.npz")['arr_0']
-    vol1 = np.load(r"D:/output.npz")['arr_0']
+    vol1 = np.load(r"D:/LIDC-IDRI_npz_small/1.npz")['arr_0']
+    # vol1 = np.load(r"D:/output.npz")['arr_0']
     # vol1 = np.load(io.load_data_file(r"D:/small_register/0_moved.npz"))['arr_0']
     #show_merge_3d(vol0[:16,:,:],vol1, 1500)
-    show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
+    # show_difference_2d(vol0[:16,:,:], vol1,slice_dim=0 ,jump=1)
+    show_two_2d(vol0[:16,:,:], vol1,5)
     # show_histogram(vol0)
